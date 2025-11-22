@@ -1,0 +1,8 @@
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.0.0
+# Whisper alternatives - using speech_recognition as fallback
+SpeechRecognition>=3.10.0
+pyttsx3>=2.90
+# pyaudio>=0.2.14  # Optional, can use without
+

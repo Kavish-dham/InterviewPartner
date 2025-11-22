@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  interview-service:
+    build:
+      context: .
+      dockerfile: services/interview-service/Dockerfile
+    container_name: interview-service
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - interview-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  voice-service:
+    build:
+      context: .
+      dockerfile: services/voice-service/Dockerfile
+    container_name: voice-service
+    ports:
+      - "8002:8002"
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - interview-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # Note: Whisper model will be downloaded on first run (can take time)
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INTERVIEW_SERVICE_URL=http://interview-service:8001
+      - VOICE_SERVICE_URL=http://voice-service:8002
+    depends_on:
+      - interview-service
+      - voice-service
+    networks:
+      - interview-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  interview-network:
+    driver: bridge
+
